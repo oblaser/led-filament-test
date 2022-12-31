@@ -23,7 +23,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "application/appmain.h"
+#include "middleware/pwmled.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -87,16 +88,7 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-  uint32_t inp, inp_old = 0, inp_pos, inp_neg;
-  int value = 0;
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
-  TIM3->CCR1 = 0;   // b
-  TIM3->CCR2 = 102; // w
-  TIM3->CCR3 = 437; // g
-  TIM3->CCR4 = 1024;// r
+  PWMLED_init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -106,70 +98,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
-        inp = 0;
-        if (HAL_GPIO_ReadPin(GPIO_BTN_0_GPIO_Port, GPIO_BTN_0_Pin)) inp |= 0x01;
-        inp_pos = ~inp_old & inp;
-        inp_neg = inp_old & ~inp;
-        inp_old = inp;
-
-        if(inp_neg & 0x01)
-        {
-            ++value;
-
-            switch (value)
-            {
-            case 1:
-                TIM3->CCR1 = 1;
-                TIM3->CCR2 = 1;
-                TIM3->CCR3 = 1;
-                TIM3->CCR4 = 1;
-                break;
-
-            case 2:
-                TIM3->CCR1 = 0;
-                TIM3->CCR2 = 0;
-                TIM3->CCR3 = 0;
-                TIM3->CCR4 = 1024;
-                break;
-
-            case 3:
-                TIM3->CCR1 = 0;
-                TIM3->CCR2 = 0;
-                TIM3->CCR3 = 1024;
-                TIM3->CCR4 = 0;
-                break;
-
-            case 4:
-                TIM3->CCR1 = 1024;
-                TIM3->CCR2 = 0;
-                TIM3->CCR3 = 0;
-                TIM3->CCR4 = 0;
-                break;
-
-            case 5:
-                TIM3->CCR1 = 0;
-                TIM3->CCR2 = 1024;
-                TIM3->CCR3 = 0;
-                TIM3->CCR4 = 0;
-                break;
-
-            case 6:
-                TIM3->CCR1 = 1024;
-                TIM3->CCR2 = 1024;
-                TIM3->CCR3 = 1024;
-                TIM3->CCR4 = 1024;
-                break;
-
-            default:
-                value = 0;
-                TIM3->CCR1 = 512;
-                TIM3->CCR2 = 512;
-                TIM3->CCR3 = 512;
-                TIM3->CCR4 = 512;
-                break;
-            }
-        }
+      APP_task();
   }
   /* USER CODE END 3 */
 }
@@ -213,6 +142,21 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void SysTick_Handler(void)
+{
+    static int ps = 0; // pre scaler to create 10ms tmr_x decrement
+
+    HAL_IncTick();
+
+    ++ps;
+
+    if (ps == 10)
+    {
+        ps = 0;
+        APP_timehandler_10ms();
+    }
+}
 
 /* USER CODE END 4 */
 
