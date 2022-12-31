@@ -2,4 +2,4 @@
 
 Testing my LED filaments :grin:
 
-![](./assets/led-filaments-test.jpg)
+![](./assets/led-filament-test.jpg)
