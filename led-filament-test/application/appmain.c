@@ -11,6 +11,7 @@ copyright       GNU GPLv3 - Copyright (c) 2022 Oliver Blaser
 #include "middleware/pwmled.h"
 #include "middleware/uart.h"
 #include "middleware/util.h"
+#include "project.h"
 
 enum STATE
 {
@@ -24,26 +25,49 @@ static uint32_t tmr_led = 0;
 
 void APP_task()
 {
+    if (UART_rxReady())
+    {
+#if defined(PRJ_DEBUG) && 1
+        const uint8_t* const data = UART_rxBuffer();
+        const size_t len = UTIL_strnfind(data, '\n', UART_RXBUFFERSIZE);
+
+        if (len < UART_RXBUFFERSIZE) UART_write(data, len + 1);
+        else UART_print("echo bot failed!\n");
+#else
+                // nop, flush
+#endif
+
+        UART_rxDataRead();
+    }
+
     switch (state)
     {
     case S_init:
         state = S_idle;
+
+#ifdef PRJ_DBG_UART_EN
         UART_print("\n");
         UART_print("  --====# started #====--\n");
         UART_print("     LED filament test   \n");
+#endif
+
+#ifndef PRJ_DEBUG
+        if(UTIL_strlen(PRJ_VERSION_PRERELEASE_STR))
+        {
+            UART_print("\n");
+            UART_print("#####################################\n");
+            UART_print("#####                           #####\n");
+            UART_print("#####  Pre-Release as release!  #####\n");
+            UART_print("#####                           #####\n");
+            UART_print("#####################################\n");
+            UART_print("\n");
+
+            state = S_crash;
+        }
+#endif
         break;
 
     case S_idle:
-        if(UART_rxReady())
-        {
-            const uint8_t* const data = UART_rxBuffer();
-            const size_t len = UTIL_strnfind(data, '\n', UART_RXBUFFERSIZE);
-
-            if (len < UART_RXBUFFERSIZE) UART_write(data, len + 1);
-            else UART_print("echo bot failed!\n");
-
-            UART_rxDataRead();
-        }
         break;
 
     case S_crash:
