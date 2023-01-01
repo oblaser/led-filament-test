@@ -9,6 +9,8 @@ copyright       GNU GPLv3 - Copyright (c) 2022 Oliver Blaser
 
 #include "appmain.h"
 #include "middleware/pwmled.h"
+#include "middleware/uart.h"
+#include "middleware/util.h"
 
 enum STATE
 {
@@ -26,9 +28,22 @@ void APP_task()
     {
     case S_init:
         state = S_idle;
+        UART_print("\n");
+        UART_print("  --====# started #====--\n");
+        UART_print("     LED filament test   \n");
         break;
 
     case S_idle:
+        if(UART_rxReady())
+        {
+            const uint8_t* const data = UART_rxBuffer();
+            const size_t len = UTIL_strnfind(data, '\n', UART_RXBUFFERSIZE);
+
+            if (len < UART_RXBUFFERSIZE) UART_write(data, len + 1);
+            else UART_print("echo bot failed!\n");
+
+            UART_rxDataRead();
+        }
         break;
 
     case S_crash:
