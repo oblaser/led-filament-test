@@ -62,6 +62,7 @@ void PWMLED_setB(uint8_t value) { TIM_CCR_B = GAMMA_CORRECTED(value); }
 void PWMLED_setW(uint8_t value) { TIM_CCR_W = GAMMA_CORRECTED(value); }
 
 
+// gamma = 1
 uint16_t gamma_1(uint8_t b)
 {
     uint16_t l = b;
@@ -90,6 +91,7 @@ uint16_t lookUpTable_2_2[] = {
     937, 945, 954, 962, 971, 979, 988, 997, 1005, 1014, 1023
 };
 
+// gamma = 2.2
 uint16_t gamma_2_2(uint8_t b)
 {
     return lookUpTable_2_2[b];
